@@ -7,45 +7,42 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         #начальное положение игрока
-        self.pos_x = 100
-        self.pos_y = 100
-        self.last_posx = 100
-        self.last_posy = 100
         self.speed = 150  # скорость пискелей в секунду
 
         self.image = pygame.image.load('Sprites/Ресурс 1.png')
         self.image = pygame.transform.scale(self.image, (60, 60))
-        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-
         self.rect = self.image.get_rect()
+        self.rect.center = (640, 960)
+
         self.lastKey = ''
         self.image.set_colorkey((255, 255, 255))
 
     def update(self):
         #изменение координат игрока в зависимости от кнопки
         key = pygame.key.get_pressed()
+        sp = self.speed // 60
         if key[pygame.K_w]:
-            self.rect.y -= self.speed // 60
+            self.rect.y -= sp
             self.image = pygame.image.load('Sprites/Ресурс 1.png')
             self.lastKey = 'w'
-        if key[pygame.K_s]:
-            self.rect.y += self.speed // 60
+        elif key[pygame.K_s]:
+            self.rect.y += sp
             self.image = pygame.image.load('Sprites/Ресурс 3.png')
             self.lastKey = 's'
-        if key[pygame.K_d]:
-            self.rect.x += self.speed // 60
+        elif key[pygame.K_d]:
+            self.rect.x += sp
             self.image = pygame.image.load('Sprites/Ресурс 2.png')
             self.lastKey = 'd'
-        if key[pygame.K_a]:
-            self.rect.x -= self.speed // 60
+        elif key[pygame.K_a]:
+            self.rect.x -= sp
             self.image = pygame.image.load('Sprites/Ресурс 4.png')
             self.lastKey = 'a'
 
         self.image = pygame.transform.scale(self.image, (60, 60))
-        print(self.pos_x, self.pos_y, self.rect.x, self.rect.y)
-        print(self.rect)
+        self.check_border()
 
     def shoot(self):
+        bullet = Bullet(self.rect.centerx, self.rect.top, 'w')
         if self.lastKey == 'w':
             bullet = Bullet(self.rect.centerx, self.rect.top, self.lastKey)
         elif self.lastKey == 's':
@@ -56,6 +53,18 @@ class Player(pygame.sprite.Sprite):
             bullet = Bullet(self.rect.centerx + 30, self.rect.y + 30, self.lastKey, notSide=False)
         sprites.add(bullet)
         bullets.add(bullet)
+
+    def check_border(self):
+        sp = self.speed // 60
+
+        if self.rect.left + sp < 0:
+            self.rect.left = 0
+        if self.rect.right + sp > 1280:
+            self.rect.right = 1280
+        if self.rect.top + sp < 0:
+            self.rect.top = 0
+        if self.rect.bottom + sp > 1000:
+            self.rect.bottom = 1000
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -84,7 +93,7 @@ class Bullet(pygame.sprite.Sprite):
 
 
 
-class Enemy:
+class Enemy(Player):
     pass
 
 

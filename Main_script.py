@@ -14,7 +14,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('Sprites/Ресурс 1.png')
         self.image = pygame.transform.scale(self.image, (60, 60))
         self.rect = self.image.get_rect()
-        self.rect.center = (640, 960)
+        self.rect.center = (640, 860)
         self.lastRect_x = self.rect.x
         self.lastRect_y = self.rect.y
 
@@ -116,7 +116,7 @@ class Bullet(pygame.sprite.Sprite):
 
 class Enemy(Player):
     def __init__(self):
-        global player, landscape
+        global player_base, landscape, player
         pygame.sprite.Sprite.__init__(self)
         self.speed = 150  # скорость пискелей в секунду
         self.is_ready_to_shoot = False
@@ -134,38 +134,49 @@ class Enemy(Player):
         self.hp = 10
 
     def update(self):
-        dx, dy = player.rect.x - self.rect.x, player.rect.y - self.rect.y
-        distance = math.hypot(dx, dy)
+        base_x, base_y = player_base.rect.x - self.rect.x, player_base.rect.y - self.rect.y
+        player_x, player_y = player.rect.x - self.rect.x, player.rect.y - self.rect.y
+        distance = math.hypot(base_x, base_y)
+        distance_to_player = math.hypot(player_x, player_y)
         print(distance)
-        if distance > 350:
-            if self.rect.x > player.rect.x:
-                self.image = pygame.image.load('Sprites/Ресурс 4.png')
-                self.rect.x -= self.sp
-                self.lastdir = 'a'
-            elif self.rect.x < player.rect.x:
-                self.image = pygame.image.load('Sprites/Ресурс 2.png')
-                self.rect.x += self.sp
-                self.lastdir = 'd'
-            elif self.rect.y < player.rect.y:
-                self.image = pygame.image.load('Sprites/Ресурс 3.png')
-                self.rect.y += self.sp
-                self.lastdir = 's'
-            elif self.rect.y > player.rect.y:
-                self.image = pygame.image.load('Sprites/Ресурс 1.png')
-                self.rect.y -= self.sp
-                self.lastdir = 'w'
-            self.image = pygame.transform.scale(self.image, (60, 60))
-        elif distance <= 350:
-            if self.rect.x > player.rect.x:
-                self.image = pygame.image.load('Sprites/Ресурс 4.png')
-                self.rect.x -= self.sp
-                self.lastdir = 'a'
-            elif self.rect.x < player.rect.x:
-                self.image = pygame.image.load('Sprites/Ресурс 2.png')
-                self.rect.x += self.sp
-                self.lastdir = 'd'
-            self.image = pygame.image.load('Sprites/Ресурс 3.png')
-            self.image = pygame.transform.scale(self.image, (60, 60))
+        if distance_to_player > 300:
+            if distance > 150:
+                if self.rect.x > player_base.rect.x:
+                    self.image = pygame.image.load('Sprites/Ресурс 4.png')
+                    self.rect.x -= self.sp
+                    self.lastdir = 'a'
+                elif self.rect.x < player_base.rect.x:
+                    self.image = pygame.image.load('Sprites/Ресурс 2.png')
+                    self.rect.x += self.sp
+                    self.lastdir = 'd'
+                elif self.rect.y < player_base.rect.y:
+                    self.image = pygame.image.load('Sprites/Ресурс 3.png')
+                    self.rect.y += self.sp
+                    self.lastdir = 's'
+                elif self.rect.y > player_base.rect.y:
+                    self.image = pygame.image.load('Sprites/Ресурс 1.png')
+                    self.rect.y -= self.sp
+                    self.lastdir = 'w'
+                self.image = pygame.transform.scale(self.image, (60, 60))
+        else:
+            if distance_to_player > 150:
+                if self.rect.x > player.rect.x:
+                    self.image = pygame.image.load('Sprites/Ресурс 4.png')
+                    self.rect.x -= self.sp
+                    self.lastdir = 'a'
+                elif self.rect.x < player.rect.x:
+                    self.image = pygame.image.load('Sprites/Ресурс 2.png')
+                    self.rect.x += self.sp
+                    self.lastdir = 'd'
+                elif self.rect.y < player.rect.y:
+                    self.image = pygame.image.load('Sprites/Ресурс 3.png')
+                    self.rect.y += self.sp
+                    self.lastdir = 's'
+                elif self.rect.y > player.rect.y:
+                    self.image = pygame.image.load('Sprites/Ресурс 1.png')
+                    self.rect.y -= self.sp
+                    self.lastdir = 'w'
+                self.image = pygame.transform.scale(self.image, (60, 60))
         self.check_collide()
 
 
@@ -193,6 +204,20 @@ class Enemy(Player):
         else:
             self.sp = self.speed // 60
 
+class Player_base(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.hp = 100
+
+        self.image = pygame.Surface((40, 40))
+        self.image.fill((255, 255, 0))
+        self.rect = self.image.get_rect()
+        self.rect.center = (640, 960)
+
+    def update(self):
+        pass
+
+
 
 
 class Bush(pygame.sprite.Sprite):
@@ -219,14 +244,15 @@ class Wall(pygame.sprite.Sprite):
         elif self.hp == 0:
             self.kill()
 
-
 def check_collide():
-    global running, player, enemy
+    global running, player, enemy, waves
     # проверки на попадания пуль и на столкновения с объектами
     if pygame.sprite.groupcollide(enemies, player_bullets, False, True):
         enemy.hp -= 5
         if enemy.hp == 0:
             enemy.kill()
+            enemies.remove(enemy)
+            all_sprites.remove(enemy)
 
     if pygame.sprite.groupcollide(landscape, enemy_bulltes, False, True) or\
             pygame.sprite.groupcollide(landscape, player_bullets, False, True):
@@ -249,9 +275,11 @@ if __name__ == '__main__':
     size = width, height = 1280, 1000
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(size)
+    waves = 5
 
     player = Player()
     enemy = Enemy()
+    player_base = Player_base()
     all_sprites = pygame.sprite.Group()
     landscape = pygame.sprite.Group()
     player_bullets = pygame.sprite.Group()
@@ -265,6 +293,8 @@ if __name__ == '__main__':
         wall = Wall(640, 500)
         landscape.add(wall)
         all_sprites.add(wall)
+    landscape.add(player_base)
+    all_sprites.add(player_base)
 
     while running:
         clock.tick(fps)
@@ -276,6 +306,11 @@ if __name__ == '__main__':
                     player.shoot()
 
         all_sprites.update()
+        if len(enemies) == 0 and waves != 0:
+            enemy = Enemy()
+            enemies.add(enemy)
+            all_sprites.add(enemy)
+            waves -= 1
         check_collide()
 
         screen.fill((0, 0, 0))

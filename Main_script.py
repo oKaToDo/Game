@@ -44,7 +44,6 @@ class Player(pygame.sprite.Sprite):
             self.player_anim_right.append(pygame.image.load('Sprites/right/right{id}.png'.format(id=str(i))))
         self.player_anim_right.reverse()
 
-
     def check_anim(self):
         self.last_anim += 1
         if self.last_anim == 8:
@@ -105,7 +104,7 @@ class Player(pygame.sprite.Sprite):
             if self.rect.bottom + sp > 1000:
                 self.rect.bottom = 1000
         else:
-            #игрок не движется при столкновении с препятствием так как из его координат вычитается скорость
+            # игрок не движется при столкновении с препятствием так как из его координат вычитается скорость
             if self.lastKey == 'w':
                 self.rect.y = self.rect.y + sp
             elif self.lastKey == 's':
@@ -114,7 +113,6 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x = self.rect.x + sp
             elif self.lastKey == 'd':
                 self.rect.x = self.rect.x - sp
-
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -222,7 +220,6 @@ class Enemy(Player):
                 self.shoot()
         self.check_collide()
 
-
     def shoot(self):
         if not self.cooldown:
             if self.lastdir == 'w':
@@ -239,13 +236,13 @@ class Enemy(Player):
         else:
             self.cooldown -= 1
 
-
     def check_collide(self):
         if pygame.sprite.spritecollide(self, landscape, False, False):
             self.sp = 0
             self.shoot()
         else:
             self.sp = self.speed // 60
+
 
 class Player_base(pygame.sprite.Sprite):
     def __init__(self):
@@ -261,10 +258,24 @@ class Player_base(pygame.sprite.Sprite):
         pass
 
 
+class Iron(pygame.sprite.Sprite):
+    def __init__(self, start_x, start_y):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.image.load('Sprites/железная стенка.png')
+        self.rect = self.image.get_rect()
+        self.rect.center = (start_x, start_y)
+        self.image.set_colorkey((255, 255, 255)
 
 
 class Bush(pygame.sprite.Sprite):
-    pass
+    def __init__(self, start_x, start_y):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.image.load('Sprites/кустик.png')
+        self.rect = self.image.get_rect()
+        self.rect.center = (start_x, start_y)
+        self.image.set_colorkey((255, 255, 255))
 
 
 class Wall(pygame.sprite.Sprite):
@@ -287,6 +298,7 @@ class Wall(pygame.sprite.Sprite):
         elif self.hp == 0:
             self.kill()
 
+
 def check_collide():
     global running, player, enemy, player_base, explosion
     # проверки на попадания пуль и на столкновения с объектами
@@ -304,7 +316,7 @@ def check_collide():
                 player_base.image = explosion[i]
             running = False
 
-    if pygame.sprite.groupcollide(landscape, enemy_bulltes, False, True) or\
+    if pygame.sprite.groupcollide(landscape, enemy_bulltes, False, True) or \
             pygame.sprite.groupcollide(landscape, player_bullets, False, True):
         wall.hp -= 5
 
@@ -342,13 +354,47 @@ if __name__ == '__main__':
 
     all_sprites.add(player)
     all_sprites.add(enemy)
-    for _ in range(1):
-        wall = Wall(640, 500)
+    landscape_pos = {
+        0: [650, 500], 1: [590, 500], 2: [710, 500], 3: [770, 560], 4: [830, 560], 5: [890, 560], 6: [890, 500],
+        7: [890, 440], 8: [830, 440], 9: [770, 440], 10: [290, 740], 11: [950, 500], 12: [1010, 500], 13: [1010, 560],
+        14: [1010, 440], 15: [410, 560], 16: [530, 560],
+        17: [470, 560], 18: [410, 560], 19: [470, 440], 20: [530, 440], 21: [410, 440], 22: [410, 500], 23: [350, 500],
+        24: [290, 500], 25: [290, 440], 26: [290, 560],
+        27: [290, 260], 28: [410, 260], 29: [530, 260], 30: [650, 260], 31: [770, 260], 32: [890, 260], 33: [1010, 260],
+        34: [1010, 740], 35: [890, 740], 36: [770, 740],
+        37: [650, 740], 38: [530, 740], 39: [410, 740]
+    }
+    bush_pos = {0: [290, 620], 1: [350, 620], 2: [350, 560], 3: [410, 620], 4: [470, 620], 5: [530, 620], 6: [590, 620],
+                7: [650, 620], 8: [710, 620], 9: [770, 620],
+                10: [830, 620], 11: [890, 620], 12: [950, 620], 13: [950, 560], 14: [1010, 620], 15: [290, 380],
+                16: [350, 380],
+                17: [350, 440], 18: [410, 380], 19: [470, 380], 20: [530, 380], 21: [590, 380],
+                22: [650, 380], 23: [710, 380], 24: [770, 380], 25: [830, 380], 26: [890, 380],
+                27: [950, 380], 28: [950, 440], 29: [1010, 380]
+                }
+    iron_pos = {0: [650, 560], 1: [710, 560], 2: [590, 560], 3: [650, 440], 4: [710, 440], 5: [590, 440], 6: [770, 500],
+                7: [830, 500], 8: [530, 500], 9: [470, 500], 10: [350, 260],
+                11: [470, 260], 12: [590, 260], 13: [710, 260], 14: [830, 260], 15: [950, 260],
+                16: [350, 740], 17: [470, 740], 18: [590, 740], 19: [710, 740], 20: [830, 740],
+                21: [950, 740]
+                }
+
+    for a in range(40):
+        wall = Wall(landscape_pos[a][0], landscape_pos[a][1])
         landscape.add(wall)
         all_sprites.add(wall)
+    for a in range(30):
+        bush = Bush(bush_pos[a][0], bush_pos[a][1])
+        landscape.add(bush)
+        all_sprites.add(bush)
+    for a in range(22):
+        iron_wall = Iron(iron_pos[a][0], iron_pos[a][1])
+        landscape.add(iron_wall)
+        all_sprites.add(iron_wall)
     landscape.add(player_base)
     all_sprites.add(player_base)
     explosion = []
+
     for i in range(1, 4):
         explosion.append((pygame.image.load('Sprites/explosion/explosion{id}.png'.format(id=str(i)))))
 

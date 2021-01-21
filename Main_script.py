@@ -115,6 +115,58 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x = self.rect.x - sp
 
 
+def print_text(message, x, y, font_color=(0, 0, 0), font_type='microsoftphagspa.ttf', font_size=30):
+    font = pygame.font.Font('microsoftphagspa.ttf', 20)
+    text = font.render('Start', True, [255, 255, 255])
+
+
+class Button():
+    def __init__(self, width, height, message):
+        self.message = message
+        self.width = width
+        self.height = height
+        self.inactive_clr = (13, 162, 58)
+        self.active_clr = (23, 204, 58)
+
+    def draw(self, x, y, message, active=None, font_size=30):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if x < mouse[0] < x + self.width and y < mouse[1] < y + self.height:
+            pygame.draw.rect(screen, self.active_clr, (x, y, self.width, self.height))
+
+            if click[0] == 1:
+                pygame.mixer.Sound.play(button_sound)
+                pygame.time.delay(300)
+                if action is not None:
+                    action()
+
+        else:
+            pygame.draw.rect(screen, self.inactive_clr, (x, y, self.width, self.height))
+
+        print_text(message=self.message, x=x+10, y=y+10, font_size=font_size)
+
+
+def game_menu():
+    menu = pygame.image.load('Sprites/логотип.png')
+
+    button_for_start = Button(300, 70, 'Start')
+
+    show = True
+
+    while show:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            screen.blit(menu, (0, 0))
+            button_for_start.draw(300, 200, 'Начать игру')
+
+            pygame.display.update()
+            clock.tick(60)
+
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, notSide=True):
         pygame.sprite.Sprite.__init__(self)
@@ -142,7 +194,6 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.left < 0 or self.rect.right > 1280 or \
                 self.rect.top < 0 or self.rect.bottom > 1000:
             self.kill()
-
 
 class Enemy(Player):
     def __init__(self):
@@ -265,7 +316,7 @@ class Iron(pygame.sprite.Sprite):
         self.image = pygame.image.load('Sprites/железная стенка.png')
         self.rect = self.image.get_rect()
         self.rect.center = (start_x, start_y)
-        self.image.set_colorkey((255, 255, 255)
+        self.image.set_colorkey((255, 255, 255))
 
 
 class Bush(pygame.sprite.Sprite):
@@ -341,6 +392,7 @@ if __name__ == '__main__':
     waves = 5
     player_cooldown = pygame.USEREVENT + 2
     cooldown_shoot = False
+    game_menu()
 
     player = Player()
     enemy = Enemy()
@@ -425,3 +477,9 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
         pygame.display.flip()
+
+
+
+
+
+

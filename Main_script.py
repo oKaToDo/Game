@@ -96,10 +96,10 @@ class Player(pygame.sprite.Sprite):
 
     def check_border(self, is_collided=False):
         if is_collided is False:
-            if self.rect.left + self.sp < 0:
-                self.rect.left = 0
-            if self.rect.right + self.sp > 1280:
-                self.rect.right = 1280
+            if self.rect.left + self.sp < 260:
+                self.rect.left = 260
+            if self.rect.right + self.sp > 1040:
+                self.rect.right = 1040
             if self.rect.top + self.sp < 0:
                 self.rect.top = 0
             if self.rect.bottom + self.sp > 1000:
@@ -244,8 +244,8 @@ class Enemy(Player):
                         self.check_anim()
                         self.rect.x += self.sp
                         self.lastdir = 'd'
-                    else:
-                        self.shoot()
+                else:
+                    self.shoot()
             self.check_collide()
         else:
             self.alarm = True
@@ -304,19 +304,29 @@ class Enemy(Player):
                     self.target_to_move[0] -= 40
             print('iron')
 
+        if pygame.sprite.spritecollide(player, bushes, False):
+            self.see_player = False
+        else:
+            self.see_player = True
+
+        if pygame.sprite.spritecollide(self, players, False):
+            self.shoot()
+
 
 class Player_base(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.hp = 15
 
-        self.image = pygame.Surface((40, 40))
-        self.image.fill((255, 255, 0))
+        self.image = pygame.image.load('Sprites/base.PNG')
         self.rect = self.image.get_rect()
         self.rect.center = (642, 960)
 
     def update(self):
-        pass
+        global running
+        if self.hp == 0:
+            running = False
+            game_menu()
 
 
 class Iron(pygame.sprite.Sprite):
@@ -359,11 +369,11 @@ class Wall(pygame.sprite.Sprite):
                 pygame.sprite.spritecollide(self, player_bullets, True):
             self.hp -= 5
         if self.hp == 15:
-            pass
+            self.image = pygame.image.load('Sprites/first.png')
         elif self.hp == 10:
-            pass
+            self.image = pygame.image.load('Sprites/second.png')
         elif self.hp == 5:
-            pass
+            self.image = pygame.image.load('Sprites/third_2.png')
         elif self.hp == 0:
             self.kill()
 
@@ -374,6 +384,8 @@ def check_collide():
     if pygame.sprite.groupcollide(enemies, player_bullets, False, True):
         enemy.hp -= 5
         if enemy.hp == 0:
+            for i in range(3):
+                enemy.image = explosion[i]
             enemy.kill()
             enemies.remove(enemy)
             all_sprites.remove(enemy)
@@ -383,6 +395,7 @@ def check_collide():
         if player_base.hp == 0:
             for i in range(3):
                 player_base.image = explosion[i]
+            all_sprites.remove(player_base)
             running = False
 
     if pygame.sprite.spritecollide(player, enemy_bulltes, True):
@@ -396,14 +409,6 @@ def check_collide():
             pygame.sprite.groupcollide(enemy_bulltes, iron_landscape, True, False):
         pass
 
-    if pygame.sprite.spritecollide(player, bushes, False):
-        print('in bush')
-        enemy.see_player = False
-        print(enemy.see_player)
-    else:
-        enemy.see_player = True
-        print(enemy.see_player)
-
 
 def print_text(message, x, y, font_color=(0, 0, 0), font_size=30):
     font_type = pygame.font.SysFont('arial', font_size)
@@ -416,8 +421,8 @@ class Button():
         self.message = message
         self.width = width
         self.height = height
-        self.inactive_clr = (13, 162, 58)
-        self.active_clr = (23, 204, 58)
+        self.inactive_clr = (136, 69, 53)
+        self.active_clr = (120, 50, 40)
 
     def draw(self, x, y, message, font_size=30, action=None, button_sound=None):
         mouse = pygame.mouse.get_pos()
@@ -442,7 +447,7 @@ class Button():
 
 
 def game_menu():
-    size = width, height = 600, 800
+    size = width, height = 600, 500
     screen = pygame.display.set_mode(size)
     menu = pygame.image.load('Sprites/логотип.png')
     menu = pygame.transform.scale(menu, (381, 241))
@@ -516,6 +521,8 @@ def start_game():
     waves = 5
     size = width, height = 1280, 1000
     screen = pygame.display.set_mode(size)
+    player_cooldown = pygame.USEREVENT + 2
+    cooldown_shoot = False
 
     load_map()
 
@@ -577,10 +584,15 @@ def start_game():
 
         all_sprites.update()
         if len(enemies) == 0 and waves != 0:
-            enemy = Enemy()
-            enemies.add(enemy)
-            all_sprites.add(enemy)
-            waves -= 1
+            if waves != 5:
+                enemy = Enemy()
+                enemies.add(enemy)
+                all_sprites.add(enemy)
+                waves -= 1
+            else:
+                print('BOOOOOOOOOOOOOSS!')
+                enemy = Enemy()
+                enemy.hp = 30
         check_collide()
 
         screen.fill((0, 0, 0))
@@ -595,18 +607,17 @@ size = width, height = 600, 800
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode(size)
 waves = 5
-player_cooldown = pygame.USEREVENT + 2
-cooldown_shoot = False
-
 all_sprites = pygame.sprite.Group()
 landscape = pygame.sprite.Group()
 player_bullets = pygame.sprite.Group()
 enemy_bulltes = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
+players = pygame.sprite.Group()
 iron_landscape = pygame.sprite.Group()
 bushes = pygame.sprite.Group()
 
 player = Player()
+players.add(player)
 enemy = Enemy()
 player_base = Player_base()
 enemies.add(enemy)
